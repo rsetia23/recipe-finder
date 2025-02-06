@@ -7,7 +7,7 @@ function App() {
   const [query, setQuery] = useState("");
   const [recipes, setRecipes] = useState([]);
   const [showNoResults, setShowNoResults] = useState(false);
-  const navigate = useNavigate(); // ✅ Allows navigating between pages
+  const navigate = useNavigate(); 
 
   const API_KEY = import.meta.env.VITE_SPOONACULAR_API_KEY; 
   const API_URL = `https://api.spoonacular.com/recipes/complexSearch?apiKey=${API_KEY}&query=${query}&addRecipeInformation=true`;
@@ -16,7 +16,7 @@ function App() {
     try {
       const response = await axios.get(API_URL);
       if (response.data.results.length === 0) {
-        setShowNoResults(true); // ✅ Show popup if no recipes are found
+        setShowNoResults(true); 
       }
       setRecipes(response.data.results);
     } catch (error) {
