@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import RecipeCard from "/components/RecipeCard";
@@ -7,18 +7,38 @@ function App() {
   const [query, setQuery] = useState("");
   const [recipes, setRecipes] = useState([]);
   const [showNoResults, setShowNoResults] = useState(false);
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
 
-  const API_KEY = import.meta.env.VITE_SPOONACULAR_API_KEY; 
+  const API_KEY = import.meta.env.VITE_SPOONACULAR_API_KEY;
   const API_URL = `https://api.spoonacular.com/recipes/complexSearch?apiKey=${API_KEY}&query=${query}&addRecipeInformation=true`;
 
+  // ✅ Check if cached data exists
+  useEffect(() => {
+    const cachedRecipes = JSON.parse(localStorage.getItem(`recipes-${query}`));
+    if (cachedRecipes) {
+      setRecipes(cachedRecipes);
+    }
+  }, [query]);
+
   const fetchRecipes = async () => {
+    if (!query.trim()) return; // ✅ Prevent empty searches
+
     try {
+      // ✅ First, check localStorage before making an API call
+      const cachedRecipes = JSON.parse(localStorage.getItem(`recipes-${query}`));
+      if (cachedRecipes) {
+        setRecipes(cachedRecipes);
+        return;
+      }
+
+      // ✅ If no cached data, fetch from API
       const response = await axios.get(API_URL);
       if (response.data.results.length === 0) {
-        setShowNoResults(true); 
+        setShowNoResults(true);
+      } else {
+        setRecipes(response.data.results);
+        localStorage.setItem(`recipes-${query}`, JSON.stringify(response.data.results)); // ✅ Store results in cache
       }
-      setRecipes(response.data.results);
     } catch (error) {
       console.error("Error fetching recipes", error);
     }

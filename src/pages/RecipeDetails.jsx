@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 
 function RecipeDetails() {
   const { id } = useParams();
+  const navigate = useNavigate(); // ✅ Allows navigation back
   const [recipe, setRecipe] = useState(null);
 
-  const API_KEY = import.meta.env.VITE_SPOONACULAR_API_KEY; 
+  const API_KEY = import.meta.env.VITE_SPOONACULAR_API_KEY;
   const API_URL = `https://api.spoonacular.com/recipes/${id}/information?apiKey=${API_KEY}`;
 
   useEffect(() => {
@@ -23,19 +24,20 @@ function RecipeDetails() {
 
   if (!recipe) return <p className="text-center text-gray-500">Loading...</p>;
 
-  // ✅ Fixing the duplicate step numbers issue
-  const formattedInstructions = recipe.analyzedInstructions?.[0]?.steps
-    ? recipe.analyzedInstructions[0].steps.map((step) => step.step) // Spoonacular already provides steps
-    : recipe.instructions
-      ? recipe.instructions.split(". ").map((step) => step.trim()) // Fallback for non-structured instructions
-      : ["Instructions not available."];
-
   return (
     <div className="max-w-3xl mx-auto p-6 bg-white shadow-lg rounded-lg">
+      {/* Back Button */}
+      <button 
+        onClick={() => navigate(-1)} 
+        className="btn btn-outline btn-primary mb-4"
+      >
+        ← Back
+      </button>
+
       <h1 className="text-3xl font-bold text-primary">{recipe.title}</h1>
       <img src={recipe.image} alt={recipe.title} className="w-full rounded-lg my-4" />
 
-      {/* 🛒 Ingredients Section */}
+      {/* Ingredients */}
       <h2 className="text-xl font-semibold">🛒 Ingredients</h2>
       <ul className="list-disc pl-5 mb-4 space-y-1">
         {recipe.extendedIngredients.map((ing) => (
@@ -43,13 +45,17 @@ function RecipeDetails() {
         ))}
       </ul>
 
-      {/* 👨‍🍳 Instructions Section (Improved Readability) */}
+      {/* Instructions */}
       <h2 className="text-xl font-semibold">👨‍🍳 Instructions</h2>
       <div className="bg-gray-100 p-4 rounded-lg mt-2">
         <ul className="list-decimal pl-5 space-y-2">
-          {formattedInstructions.map((step, index) => (
-            <li key={index} className="text-gray-700 leading-relaxed">{step}</li>
-          ))}
+          {recipe.analyzedInstructions?.[0]?.steps
+            ? recipe.analyzedInstructions[0].steps.map((step, index) => (
+                <li key={index} className="text-gray-700 leading-relaxed">{step.step}</li>
+              ))
+            : ["Instructions not available."].map((step, index) => (
+                <li key={index} className="text-gray-700 leading-relaxed">{step}</li>
+              ))}
         </ul>
       </div>
     </div>
